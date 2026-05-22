@@ -45,7 +45,7 @@ static inline auto run(CHIP8 &ctx) -> void {
 // This is the bridge between compile-time chains of known instructions and
 // runtime jumps
 template <size_t... PCs>
-static auto dispatch(CHIP8 &ctx, std::index_sequence<PCs...>) -> void {
+auto dispatch(CHIP8 &ctx, std::index_sequence<PCs...>) -> void {
   (
       [&] {
         if (ctx.pc == PCs) {
@@ -55,7 +55,7 @@ static auto dispatch(CHIP8 &ctx, std::index_sequence<PCs...>) -> void {
       ...);
 }
 
-static inline auto execute_program(CHIP8 &ctx) -> void {
+inline auto execute_program(CHIP8 &ctx) -> void {
   ctx.pc = 0;
   while (ctx.pc < GAME_ROM.size()) {
     dispatch(ctx, std::make_index_sequence<GAME_ROM.size()>{});

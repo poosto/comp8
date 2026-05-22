@@ -50,7 +50,7 @@ struct DynamicJump {};
 
 using NextPC = std::variant<Increment, Jump, Branch, DynamicJump>;
 
-static constexpr std::array<Opcode, 7> GAME_ROM{
+constexpr std::array<Opcode, 7> GAME_ROM{
     0x6105, // LD_IMM V1, 5      — V1 = 5 (loop counter)
     0x4100, // SNE_IMM V1, 0     — if V1 != 0 skip; else fall through
     0x1006, // JP 6              — exit loop
