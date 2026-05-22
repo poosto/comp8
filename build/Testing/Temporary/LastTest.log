@@ -1,0 +1,143 @@
+Start testing: May 22 12:16 CEST
+----------------------------------------------------------
+1/7 Testing: Executor<SUB>
+1/7 Test: Executor<SUB>
+Command: "/Users/prestonmeek/Desktop/PROJECTS/comp8/build/comp8_tests" "Executor<SUB>"
+Directory: /Users/prestonmeek/Desktop/PROJECTS/comp8/build
+"Executor<SUB>" start time: May 22 12:16 CEST
+Output:
+----------------------------------------------------------
+Filters: "Executor<SUB>"
+Randomness seeded to: 2817007536
+===============================================================================
+All tests passed (4 assertions in 1 test case)
+
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"Executor<SUB>" end time: May 22 12:16 CEST
+"Executor<SUB>" time elapsed: 00:00:00
+----------------------------------------------------------
+
+2/7 Testing: Executor<INDIRECT_JUMP>
+2/7 Test: Executor<INDIRECT_JUMP>
+Command: "/Users/prestonmeek/Desktop/PROJECTS/comp8/build/comp8_tests" "Executor<INDIRECT_JUMP>"
+Directory: /Users/prestonmeek/Desktop/PROJECTS/comp8/build
+"Executor<INDIRECT_JUMP>" start time: May 22 12:16 CEST
+Output:
+----------------------------------------------------------
+Filters: "Executor<INDIRECT_JUMP>"
+Randomness seeded to: 2930279470
+===============================================================================
+All tests passed (3 assertions in 1 test case)
+
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"Executor<INDIRECT_JUMP>" end time: May 22 12:16 CEST
+"Executor<INDIRECT_JUMP>" time elapsed: 00:00:00
+----------------------------------------------------------
+
+3/7 Testing: Executor<SNE>
+3/7 Test: Executor<SNE>
+Command: "/Users/prestonmeek/Desktop/PROJECTS/comp8/build/comp8_tests" "Executor<SNE>"
+Directory: /Users/prestonmeek/Desktop/PROJECTS/comp8/build
+"Executor<SNE>" start time: May 22 12:16 CEST
+Output:
+----------------------------------------------------------
+Filters: "Executor<SNE>"
+Randomness seeded to: 421691631
+===============================================================================
+All tests passed (6 assertions in 1 test case)
+
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"Executor<SNE>" end time: May 22 12:16 CEST
+"Executor<SNE>" time elapsed: 00:00:00
+----------------------------------------------------------
+
+4/7 Testing: Executor<ADD_IMM>
+4/7 Test: Executor<ADD_IMM>
+Command: "/Users/prestonmeek/Desktop/PROJECTS/comp8/build/comp8_tests" "Executor<ADD_IMM>"
+Directory: /Users/prestonmeek/Desktop/PROJECTS/comp8/build
+"Executor<ADD_IMM>" start time: May 22 12:16 CEST
+Output:
+----------------------------------------------------------
+Filters: "Executor<ADD_IMM>"
+Randomness seeded to: 2271483752
+===============================================================================
+All tests passed (19 assertions in 1 test case)
+
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"Executor<ADD_IMM>" end time: May 22 12:16 CEST
+"Executor<ADD_IMM>" time elapsed: 00:00:00
+----------------------------------------------------------
+
+5/7 Testing: Parser
+5/7 Test: Parser
+Command: "/Users/prestonmeek/Desktop/PROJECTS/comp8/build/comp8_tests" "Parser"
+Directory: /Users/prestonmeek/Desktop/PROJECTS/comp8/build
+"Parser" start time: May 22 12:16 CEST
+Output:
+----------------------------------------------------------
+Filters: "Parser"
+Randomness seeded to: 119666571
+===============================================================================
+All tests passed (6 assertions in 1 test case)
+
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"Parser" end time: May 22 12:16 CEST
+"Parser" time elapsed: 00:00:00
+----------------------------------------------------------
+
+6/7 Testing: Executor<JUMP>
+6/7 Test: Executor<JUMP>
+Command: "/Users/prestonmeek/Desktop/PROJECTS/comp8/build/comp8_tests" "Executor<JUMP>"
+Directory: /Users/prestonmeek/Desktop/PROJECTS/comp8/build
+"Executor<JUMP>" start time: May 22 12:16 CEST
+Output:
+----------------------------------------------------------
+Filters: "Executor<JUMP>"
+Randomness seeded to: 2495654663
+===============================================================================
+All tests passed (3 assertions in 1 test case)
+
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"Executor<JUMP>" end time: May 22 12:16 CEST
+"Executor<JUMP>" time elapsed: 00:00:00
+----------------------------------------------------------
+
+7/7 Testing: execute_program
+7/7 Test: execute_program
+Command: "/Users/prestonmeek/Desktop/PROJECTS/comp8/build/comp8_tests" "execute_program"
+Directory: /Users/prestonmeek/Desktop/PROJECTS/comp8/build
+"execute_program" start time: May 22 12:16 CEST
+Output:
+----------------------------------------------------------
+Filters: "execute_program"
+Randomness seeded to: 819037502
+===============================================================================
+All tests passed (21 assertions in 1 test case)
+
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"execute_program" end time: May 22 12:16 CEST
+"execute_program" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: May 22 12:16 CEST
