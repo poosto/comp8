@@ -5,14 +5,25 @@
 
 #include "chip8.h"
 
-template <Instruction I, bool Cond = true> struct Executor {
+template <Instruction> struct Executor {
+  Executor() = delete;
+
   auto operator()(CHIP8 &) const noexcept -> void {
     static_assert(false, "Unhandled instruction");
     std::terminate();
   }
 };
 
-template <> struct Executor<Instruction::ADD_IMM, true> {
+template <Instruction, bool> struct ConditionalExecutor {
+  ConditionalExecutor() = delete;
+
+  auto operator()(CHIP8 &) const noexcept -> void {
+    static_assert(false, "Unhandled instruction");
+    std::terminate();
+  }
+};
+
+template <> struct Executor<Instruction::ADD_IMM> {
   const uint8_t x_;
   const uint8_t kk_;
 
@@ -31,7 +42,7 @@ template <> struct Executor<Instruction::ADD_IMM, true> {
   }
 };
 
-template <> struct Executor<Instruction::SUB, true> {
+template <> struct Executor<Instruction::SUB> {
   const uint8_t x_;
   const uint8_t y_;
 
@@ -50,7 +61,7 @@ template <> struct Executor<Instruction::SUB, true> {
   }
 };
 
-template <> struct Executor<Instruction::JUMP, true> {
+template <> struct Executor<Instruction::JUMP> {
   const uint16_t nnn_;
 
   constexpr Executor(uint16_t nnn) : nnn_{nnn} {}
@@ -62,7 +73,7 @@ template <> struct Executor<Instruction::JUMP, true> {
   auto operator()(CHIP8 &) const noexcept -> void {}
 };
 
-template <> struct Executor<Instruction::INDIRECT_JUMP, true> {
+template <> struct Executor<Instruction::INDIRECT_JUMP> {
   const uint16_t nnn_;
 
   constexpr Executor(uint16_t nnn) : nnn_{nnn} {}
@@ -76,11 +87,11 @@ template <> struct Executor<Instruction::INDIRECT_JUMP, true> {
   auto operator()(CHIP8 &) const noexcept -> void {}
 };
 
-template <bool Cond> struct Executor<Instruction::SE_IMM, Cond> {
+template <bool Cond> struct ConditionalExecutor<Instruction::SE_IMM, Cond> {
   const uint8_t x_;
   const uint8_t kk_;
 
-  constexpr Executor(uint8_t x, uint8_t kk) : x_{x}, kk_{kk} {}
+  constexpr ConditionalExecutor(uint8_t x, uint8_t kk) : x_{x}, kk_{kk} {}
 
   constexpr auto next_pc() const noexcept -> NextPC {
     return Branch{.skip_by = 2, .fall_by = 1};
@@ -98,15 +109,22 @@ template <bool Cond> struct Executor<Instruction::SE_IMM, Cond> {
 };
 
 template <>
-struct Executor<Instruction::SNE_IMM> : Executor<Instruction::SE_IMM, false> {
-  using Executor<Instruction::SE_IMM, false>::Executor;
+struct Executor<Instruction::SE_IMM>
+    : ConditionalExecutor<Instruction::SE_IMM, true> {
+  using ConditionalExecutor<Instruction::SE_IMM, true>::ConditionalExecutor;
 };
 
-template <bool Cond> struct Executor<Instruction::SE, Cond> {
+template <>
+struct Executor<Instruction::SNE_IMM>
+    : ConditionalExecutor<Instruction::SE_IMM, false> {
+  using ConditionalExecutor<Instruction::SE_IMM, false>::ConditionalExecutor;
+};
+
+template <bool Cond> struct ConditionalExecutor<Instruction::SE, Cond> {
   const uint8_t x_;
   const uint8_t y_;
 
-  constexpr Executor(uint8_t x, uint8_t y) : x_{x}, y_{y} {}
+  constexpr ConditionalExecutor(uint8_t x, uint8_t y) : x_{x}, y_{y} {}
 
   constexpr auto next_pc() const noexcept -> NextPC {
     return Branch{.skip_by = 2, .fall_by = 1};
@@ -124,6 +142,12 @@ template <bool Cond> struct Executor<Instruction::SE, Cond> {
 };
 
 template <>
-struct Executor<Instruction::SNE> : Executor<Instruction::SE, false> {
-  using Executor<Instruction::SE, false>::Executor;
+struct Executor<Instruction::SE> : ConditionalExecutor<Instruction::SE, true> {
+  using ConditionalExecutor<Instruction::SE, true>::ConditionalExecutor;
+};
+
+template <>
+struct Executor<Instruction::SNE>
+    : ConditionalExecutor<Instruction::SE, false> {
+  using ConditionalExecutor<Instruction::SE, false>::ConditionalExecutor;
 };
