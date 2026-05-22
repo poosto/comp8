@@ -22,6 +22,7 @@ using Opcode = uint16_t;
 
 enum class Instruction {
   CLS,
+  SYS,
   ADD_IMM,
   JUMP,
   SE_IMM,

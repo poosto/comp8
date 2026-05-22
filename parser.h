@@ -36,6 +36,7 @@ template <Opcode Op> struct Parser {
 
       } else {
         // SYS instruction does not have a back tag as its format is 0nnn
+        return Executor<Instruction::SYS>{nnn};
       }
     } else if constexpr (front_tag == FrontTag::JUMP) {
       return Executor<Instruction::JUMP>{nnn};

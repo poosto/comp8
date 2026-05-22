@@ -33,6 +33,17 @@ template <> struct Executor<Instruction::CLS> {
   }
 };
 
+// Treated as a NOP (for now..?)
+template <> struct Executor<Instruction::SYS> {
+  const uint16_t nnn_{};
+
+  constexpr Executor(uint16_t nnn) : nnn_{nnn} {}
+
+  constexpr auto next_pc() const noexcept -> NextPC { return Increment{}; }
+
+  auto operator()(CHIP8 &) const noexcept -> void {}
+};
+
 template <> struct Executor<Instruction::ADD_IMM> {
   const uint8_t x_;
   const uint8_t kk_;
