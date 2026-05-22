@@ -1,3 +1,4 @@
+#include "display.h"
 #include "runner.h"
 
 #include <cstdio>
@@ -24,6 +25,17 @@ auto main(int argc, char **) -> int {
   print_arr("Context before: ", chip8.vx);
   execute_program(chip8);
   print_arr("Context after:  ", chip8.vx);
+
+  Display display{};
+  while (!display.poll_quit()) {
+    auto frame_start = SDL_GetTicks64();
+
+    display.present();
+
+    auto elapsed = SDL_GetTicks64() - frame_start;
+    if (elapsed < 16)
+      SDL_Delay(16 - elapsed);
+  }
 
   return 0;
 }

@@ -6,7 +6,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+if(APPLE)
+  list(APPEND CMAKE_PREFIX_PATH /opt/homebrew)
+endif()
+
+find_package(SDL2 REQUIRED)
+
 add_executable(comp8 main.cpp)
+target_link_libraries(comp8 PRIVATE SDL2::SDL2)
 target_compile_options(comp8 PRIVATE -Wall -Wextra -O2)
 
 find_package(Catch2 3 REQUIRED)
