@@ -99,9 +99,9 @@ template <bool Cond> struct ConditionalExecutor<Instruction::SE_IMM, Cond> {
 
   auto condition(CHIP8 &ctx) const noexcept -> bool {
     if constexpr (Cond) {
-      return ctx.vx[x_] == ctx.vx[kk_];
+      return ctx.vx[x_] == kk_;
     } else {
-      return ctx.vx[x_] != ctx.vx[kk_];
+      return ctx.vx[x_] != kk_;
     }
   }
 

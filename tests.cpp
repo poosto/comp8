@@ -145,6 +145,58 @@ TEST_CASE("Executor<SNE>") {
   }
 }
 
+// ── Executor<SE_IMM> ────────────────────────────────────────────────────────
+
+TEST_CASE("Executor<SE_IMM>") {
+  SECTION("condition true when vx[x] == kk") {
+    CHIP8 ctx{};
+    ctx.vx[0] = 3;
+    REQUIRE(Executor<Instruction::SE_IMM>{0, 3}.condition(ctx) == true);
+  }
+  SECTION("condition false when vx[x] != kk") {
+    CHIP8 ctx{};
+    ctx.vx[0] = 5;
+    REQUIRE(Executor<Instruction::SE_IMM>{0, 3}.condition(ctx) == false);
+  }
+  SECTION("condition true when both zero") {
+    CHIP8 ctx{};
+    REQUIRE(Executor<Instruction::SE_IMM>{0, 0}.condition(ctx) == true);
+  }
+  SECTION("next_pc is Branch{skip=2, fall=1}") {
+    auto next = Executor<Instruction::SE_IMM>{0, 0}.next_pc();
+    REQUIRE(std::holds_alternative<Branch>(next));
+    auto b = std::get<Branch>(next);
+    REQUIRE(b.skip_by == 2);
+    REQUIRE(b.fall_by == 1);
+  }
+}
+
+// ── Executor<SNE_IMM> ────────────────────────────────────────────────────────
+
+TEST_CASE("Executor<SNE_IMM>") {
+  SECTION("condition true when vx[x] != kk") {
+    CHIP8 ctx{};
+    ctx.vx[0] = 1;
+    REQUIRE(Executor<Instruction::SNE_IMM>{0, 2}.condition(ctx) == true);
+  }
+  SECTION("condition false when vx[x] == kk") {
+    CHIP8 ctx{};
+    ctx.vx[0] = 5;
+    REQUIRE(Executor<Instruction::SNE_IMM>{0, 5}.condition(ctx) == false);
+  }
+  SECTION("condition false when both zero") {
+    CHIP8 ctx{};
+    REQUIRE(Executor<Instruction::SNE_IMM>{0, 0}.condition(ctx) == false);
+  }
+  SECTION("next_pc is Branch{skip=2, fall=1}") {
+    auto next = Executor<Instruction::SNE_IMM>{0, 0}.next_pc();
+    REQUIRE(std::holds_alternative<Branch>(next));
+    auto b = std::get<Branch>(next);
+    REQUIRE(b.skip_by == 2);
+    REQUIRE(b.fall_by == 1);
+  }
+}
+
 // ── Parser ───────────────────────────────────────────────────────────────────
 
 TEST_CASE("Parser") {
