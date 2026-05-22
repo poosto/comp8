@@ -2,9 +2,18 @@
 
 #include <array>
 #include <cstdint>
+#include <mdspan>
 #include <variant>
 
 struct CHIP8 {
+  static constexpr int VIDEO_WIDTH = 64;
+  static constexpr int VIDEO_HEIGHT = 32;
+
+  // TODO: use std::byte instead?
+  std::array<uint8_t, VIDEO_WIDTH * VIDEO_HEIGHT> vram_flat{};
+  std::mdspan<uint8_t, std::extents<size_t, VIDEO_WIDTH, VIDEO_HEIGHT>> vram{
+      vram_flat.data()};
+
   std::array<uint8_t, 16> vx{};
   uint16_t pc{};
 };
@@ -12,7 +21,7 @@ struct CHIP8 {
 using Opcode = uint16_t;
 
 enum class Instruction {
-  NOP,
+  CLS,
   ADD_IMM,
   JUMP,
   SE_IMM,

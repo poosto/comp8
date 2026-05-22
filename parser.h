@@ -4,7 +4,8 @@
 
 template <Opcode Op> struct Parser {
   constexpr auto operator()() {
-    enum class FrontTag {
+    enum class FrontTag : uint8_t {
+      CHIP8_COMMANDS = 0x0,
       JUMP = 0x1,
       SE_IMM = 0x3,
       SNE_IMM = 0x4,
@@ -24,7 +25,19 @@ template <Opcode Op> struct Parser {
 
     constexpr FrontTag front_tag = FrontTag{(Op >> 12) & 0xF};
 
-    if constexpr (front_tag == FrontTag::JUMP) {
+    if constexpr (front_tag == FrontTag::CHIP8_COMMANDS) {
+      enum class BackTag : uint16_t { CLS = 0xE0, RET = 0xEE, SYS };
+
+      constexpr BackTag back_tag = BackTag{Op & 0xFF};
+
+      if constexpr (back_tag == BackTag::CLS) {
+        return Executor<Instruction::CLS>{};
+      } else if constexpr (back_tag == BackTag::RET) {
+
+      } else {
+        // SYS instruction does not have a back tag as its format is 0nnn
+      }
+    } else if constexpr (front_tag == FrontTag::JUMP) {
       return Executor<Instruction::JUMP>{nnn};
     } else if constexpr (front_tag == FrontTag::SE_IMM) {
       return Executor<Instruction::SE_IMM>{x, kk};
@@ -37,7 +50,7 @@ template <Opcode Op> struct Parser {
     } else if constexpr (front_tag == FrontTag::ADD_IMM) {
       return Executor<Instruction::ADD_IMM>{x, kk};
     } else if constexpr (front_tag == FrontTag::MATH) {
-      enum class BackTag {
+      enum class BackTag : uint8_t {
         LD = 0x0,
         OR = 0x1,
         AND = 0x2,

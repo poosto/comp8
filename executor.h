@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <exception>
 #include <limits>
 
@@ -21,6 +22,16 @@ concept BinaryOp = std::regular_invocable<Op, T, T> &&
                    std::same_as<std::invoke_result_t<Op, T, T>, T>;
 
 template <BinaryOp<uint8_t>> struct ArithmeticExecutor;
+
+template <> struct Executor<Instruction::CLS> {
+  constexpr Executor() {}
+
+  constexpr auto next_pc() const noexcept -> NextPC { return Increment{}; }
+
+  auto operator()(CHIP8 &ctx) const noexcept -> void {
+    std::ranges::fill(ctx.vram_flat, 0);
+  }
+};
 
 template <> struct Executor<Instruction::ADD_IMM> {
   const uint8_t x_;

@@ -1,12 +1,15 @@
 #pragma once
 
+#include "chip8.h"
 #include <SDL.h>
 
 #include <array>
 #include <stdexcept>
 
-static constexpr int DISPLAY_W = 64;
-static constexpr int DISPLAY_H = 32;
+// TODO: change these into perameters as the display should have no knowledge of
+// the CHIP8 system
+static constexpr int DISPLAY_W = CHIP8::VIDEO_WIDTH;
+static constexpr int DISPLAY_H = CHIP8::VIDEO_HEIGHT;
 static constexpr int DISPLAY_SCALE = 10;
 
 struct SDLContext {
