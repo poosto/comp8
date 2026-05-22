@@ -369,18 +369,18 @@ TEST_CASE("Executor<SHL>") {
   }
 }
 
-// ── Executor<JUMP> ───────────────────────────────────────────────────────────
+// ── Executor<JP> ───────────────────────────────────────────────────────────
 
-TEST_CASE("Executor<JUMP>") {
+TEST_CASE("Executor<JP>") {
   SECTION("next_pc is Jump with correct target") {
-    auto next = Executor<Instruction::JUMP>{0x300}.next_pc();
+    auto next = Executor<Instruction::JP>{0x300}.next_pc();
     REQUIRE(std::holds_alternative<Jump>(next));
     REQUIRE(std::get<Jump>(next).target == 0x300);
   }
   SECTION("does not modify ctx") {
     CHIP8 ctx{};
     ctx.regfile[0] = 42;
-    Executor<Instruction::JUMP>{0x200}(ctx);
+    Executor<Instruction::JP>{0x200}(ctx);
     REQUIRE(ctx.regfile[0] == 42);
   }
 }
