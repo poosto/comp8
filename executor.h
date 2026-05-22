@@ -31,12 +31,12 @@ template <> struct Executor<Instruction::ADD_IMM> {
   constexpr auto next_pc() const noexcept -> NextPC { return Increment{}; }
 
   auto operator()(CHIP8 &ctx) const noexcept -> void {
-    auto &x = ctx.vx[x_];
+    auto &vx = ctx.vx[x_];
 
-    if (x + kk_ > std::numeric_limits<uint8_t>::max()) {
-      x += kk_ - (std::numeric_limits<uint8_t>::max() + 1);
+    if (vx + kk_ > std::numeric_limits<uint8_t>::max()) {
+      vx += kk_ - (std::numeric_limits<uint8_t>::max() + 1);
     } else {
-      x += kk_;
+      vx += kk_;
     }
   }
 };
@@ -165,8 +165,8 @@ template <BinaryOp<uint8_t> Op> struct ArithmeticExecutor {
   constexpr auto next_pc() const noexcept -> NextPC { return Increment{}; }
 
   auto operator()(CHIP8 &ctx) const noexcept -> void {
-    auto &x = ctx.vx[x_], &y = ctx.vx[y_];
-    x = Op{}(x, y);
+    auto &vx = ctx.vx[x_], &vy = ctx.vx[y_];
+    vx = Op{}(vx, vy);
   }
 };
 
@@ -194,13 +194,13 @@ template <> struct Executor<Instruction::ADD> {
   constexpr auto next_pc() const noexcept -> NextPC { return Increment{}; }
 
   auto operator()(CHIP8 &ctx) const noexcept -> void {
-    auto &x = ctx.vx[x_], &y = ctx.vx[y_], &vf = ctx.vx[0xF];
+    auto &vx = ctx.vx[x_], &vy = ctx.vx[y_], &vf = ctx.vx[0xF];
 
-    if (x + y > std::numeric_limits<uint8_t>::max()) {
-      x += y - (std::numeric_limits<uint8_t>::max() + 1);
+    if (vx + vy > std::numeric_limits<uint8_t>::max()) {
+      vx += vy - (std::numeric_limits<uint8_t>::max() + 1);
       vf = 1;
     } else {
-      x += y;
+      vx += vy;
       vf = 0;
     }
   }
@@ -215,14 +215,31 @@ template <> struct Executor<Instruction::SUB> {
   constexpr auto next_pc() const noexcept -> NextPC { return Increment{}; }
 
   auto operator()(CHIP8 &ctx) const noexcept -> void {
-    auto &x = ctx.vx[x_], &y = ctx.vx[y_], &vf = ctx.vx[0xF];
+    auto &vx = ctx.vx[x_], &vy = ctx.vx[y_], &vf = ctx.vx[0xF];
 
-    vf = (x > y) ? 1 : 0;
+    vf = (vx > vy) ? 1 : 0;
 
-    if (x < y) {
-      x = (std::numeric_limits<uint8_t>::max() + 1) - (y - x);
+    if (vx < vy) {
+      vx = (std::numeric_limits<uint8_t>::max() + 1) - (vy - vx);
     } else {
-      x -= y;
+      vx -= vy;
     }
+  }
+};
+
+template <> struct Executor<Instruction::SHR> {
+  const uint8_t x_;
+  const uint8_t y_;
+
+  constexpr Executor(uint8_t x, uint8_t y) : x_{x}, y_{y} {}
+
+  constexpr auto next_pc() const noexcept -> NextPC { return Increment{}; }
+
+  auto operator()(CHIP8 &ctx) const noexcept -> void {
+    auto &vx = ctx.vx[x_], &vf = ctx.vx[0xF];
+
+    vf = (vx & 0x1) ? 1 : 0;
+
+    vx >>= 1;
   }
 };
