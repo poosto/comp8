@@ -243,3 +243,24 @@ template <> struct Executor<Instruction::SHR> {
     vx >>= 1;
   }
 };
+
+template <> struct Executor<Instruction::SUBN> {
+  const uint8_t x_;
+  const uint8_t y_;
+
+  constexpr Executor(uint8_t x, uint8_t y) : x_{x}, y_{y} {}
+
+  constexpr auto next_pc() const noexcept -> NextPC { return Increment{}; }
+
+  auto operator()(CHIP8 &ctx) const noexcept -> void {
+    auto &vx = ctx.vx[x_], &vy = ctx.vx[y_], &vf = ctx.vx[0xF];
+
+    vf = (vy > vx) ? 1 : 0;
+
+    if (vy < vx) {
+      vy = (std::numeric_limits<uint8_t>::max() + 1) - (vx - vy);
+    } else {
+      vy -= vx;
+    }
+  }
+};
