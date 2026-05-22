@@ -20,11 +20,11 @@ static inline auto print_arr(std::string_view prefix, T arr) -> void {
 auto main(int argc, char **) -> int {
   CHIP8 chip8{};
 
-  chip8.vx[0] = (uint8_t)argc;
+  chip8.regfile[0] = (uint8_t)argc;
 
-  print_arr("Context before: ", chip8.vx);
+  print_arr("Context before: ", chip8.regfile);
   execute_program(chip8);
-  print_arr("Context after:  ", chip8.vx);
+  print_arr("Context after:  ", chip8.regfile);
 
   Display display{};
   while (!display.poll_quit()) {

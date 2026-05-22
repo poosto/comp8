@@ -14,8 +14,9 @@ struct CHIP8 {
   std::mdspan<uint8_t, std::extents<size_t, VIDEO_WIDTH, VIDEO_HEIGHT>> vram{
       vram_flat.data()};
 
-  std::array<uint8_t, 16> vx{};
+  std::array<uint8_t, 16> regfile{};
   uint16_t pc{};
+  uint8_t stack{};
 };
 
 using Opcode = uint16_t;

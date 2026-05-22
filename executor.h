@@ -53,7 +53,7 @@ template <> struct Executor<Instruction::ADD_IMM> {
   constexpr auto next_pc() const noexcept -> NextPC { return Increment{}; }
 
   auto operator()(CHIP8 &ctx) const noexcept -> void {
-    auto &vx = ctx.vx[x_];
+    auto &vx = ctx.regfile[x_];
 
     if (vx + kk_ > std::numeric_limits<uint8_t>::max()) {
       vx += kk_ - (std::numeric_limits<uint8_t>::max() + 1);
@@ -83,7 +83,7 @@ template <> struct Executor<Instruction::INDIRECT_JUMP> {
   constexpr auto next_pc() const noexcept -> NextPC { return DynamicJump{}; }
 
   auto target(const CHIP8 &ctx) const noexcept -> uint16_t {
-    return ctx.vx[0] + nnn_;
+    return ctx.regfile[0] + nnn_;
   }
 
   auto operator()(CHIP8 &) const noexcept -> void {}
@@ -101,9 +101,9 @@ template <bool Cond> struct ConditionalExecutor<Instruction::SE_IMM, Cond> {
 
   auto condition(CHIP8 &ctx) const noexcept -> bool {
     if constexpr (Cond) {
-      return ctx.vx[x_] == kk_;
+      return ctx.regfile[x_] == kk_;
     } else {
-      return ctx.vx[x_] != kk_;
+      return ctx.regfile[x_] != kk_;
     }
   }
 
@@ -134,9 +134,9 @@ template <bool Cond> struct ConditionalExecutor<Instruction::SE, Cond> {
 
   auto condition(CHIP8 &ctx) const noexcept -> bool {
     if constexpr (Cond) {
-      return ctx.vx[x_] == ctx.vx[y_];
+      return ctx.regfile[x_] == ctx.regfile[y_];
     } else {
-      return ctx.vx[x_] != ctx.vx[y_];
+      return ctx.regfile[x_] != ctx.regfile[y_];
     }
   }
 
@@ -163,7 +163,7 @@ template <> struct Executor<Instruction::LD> {
   constexpr auto next_pc() const noexcept -> NextPC { return Increment{}; }
 
   auto operator()(CHIP8 &ctx) const noexcept -> void {
-    ctx.vx[x_] = ctx.vx[y_];
+    ctx.regfile[x_] = ctx.regfile[y_];
   }
 };
 
@@ -175,7 +175,7 @@ template <> struct Executor<Instruction::LD_IMM> {
 
   constexpr auto next_pc() const noexcept -> NextPC { return Increment{}; }
 
-  auto operator()(CHIP8 &ctx) const noexcept -> void { ctx.vx[x_] = kk_; }
+  auto operator()(CHIP8 &ctx) const noexcept -> void { ctx.regfile[x_] = kk_; }
 };
 
 template <BinaryOp<uint8_t> Op> struct ArithmeticExecutor {
@@ -187,7 +187,7 @@ template <BinaryOp<uint8_t> Op> struct ArithmeticExecutor {
   constexpr auto next_pc() const noexcept -> NextPC { return Increment{}; }
 
   auto operator()(CHIP8 &ctx) const noexcept -> void {
-    auto &vx = ctx.vx[x_], &vy = ctx.vx[y_];
+    auto &vx = ctx.regfile[x_], &vy = ctx.regfile[y_];
     vx = Op{}(vx, vy);
   }
 };
@@ -216,7 +216,7 @@ template <> struct Executor<Instruction::ADD> {
   constexpr auto next_pc() const noexcept -> NextPC { return Increment{}; }
 
   auto operator()(CHIP8 &ctx) const noexcept -> void {
-    auto &vx = ctx.vx[x_], &vy = ctx.vx[y_], &vf = ctx.vx[0xF];
+    auto &vx = ctx.regfile[x_], &vy = ctx.regfile[y_], &vf = ctx.regfile[0xF];
 
     if (vx + vy > std::numeric_limits<uint8_t>::max()) {
       vx += vy - (std::numeric_limits<uint8_t>::max() + 1);
@@ -237,7 +237,7 @@ template <> struct Executor<Instruction::SUB> {
   constexpr auto next_pc() const noexcept -> NextPC { return Increment{}; }
 
   auto operator()(CHIP8 &ctx) const noexcept -> void {
-    auto &vx = ctx.vx[x_], &vy = ctx.vx[y_], &vf = ctx.vx[0xF];
+    auto &vx = ctx.regfile[x_], &vy = ctx.regfile[y_], &vf = ctx.regfile[0xF];
 
     vf = (vx > vy) ? 1 : 0;
 
@@ -258,7 +258,7 @@ template <> struct Executor<Instruction::SHR> {
   constexpr auto next_pc() const noexcept -> NextPC { return Increment{}; }
 
   auto operator()(CHIP8 &ctx) const noexcept -> void {
-    auto &vx = ctx.vx[x_], &vf = ctx.vx[0xF];
+    auto &vx = ctx.regfile[x_], &vf = ctx.regfile[0xF];
 
     vf = (vx & 0x1) ? 1 : 0;
 
@@ -275,7 +275,7 @@ template <> struct Executor<Instruction::SUBN> {
   constexpr auto next_pc() const noexcept -> NextPC { return Increment{}; }
 
   auto operator()(CHIP8 &ctx) const noexcept -> void {
-    auto &vx = ctx.vx[x_], &vy = ctx.vx[y_], &vf = ctx.vx[0xF];
+    auto &vx = ctx.regfile[x_], &vy = ctx.regfile[y_], &vf = ctx.regfile[0xF];
 
     vf = (vy > vx) ? 1 : 0;
 
@@ -296,7 +296,7 @@ template <> struct Executor<Instruction::SHL> {
   constexpr auto next_pc() const noexcept -> NextPC { return Increment{}; }
 
   auto operator()(CHIP8 &ctx) const noexcept -> void {
-    auto &vx = ctx.vx[x_], &vf = ctx.vx[0xF];
+    auto &vx = ctx.regfile[x_], &vf = ctx.regfile[0xF];
 
     vf = ((vx >> 7) & 0x1) ? 1 : 0;
 
