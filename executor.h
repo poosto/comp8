@@ -258,9 +258,9 @@ template <> struct Executor<Instruction::SUBN> {
     vf = (vy > vx) ? 1 : 0;
 
     if (vy < vx) {
-      vy = (std::numeric_limits<uint8_t>::max() + 1) - (vx - vy);
+      vx = (std::numeric_limits<uint8_t>::max() + 1) - (vx - vy);
     } else {
-      vy -= vx;
+      vx = vy - vx;
     }
   }
 };
@@ -276,7 +276,7 @@ template <> struct Executor<Instruction::SHL> {
   auto operator()(CHIP8 &ctx) const noexcept -> void {
     auto &vx = ctx.vx[x_], &vf = ctx.vx[0xF];
 
-    vf = ((vx >> 0xF) & 0x1) ? 1 : 0;
+    vf = ((vx >> 7) & 0x1) ? 1 : 0;
 
     vx <<= 1;
   }

@@ -40,6 +40,7 @@ TEST_CASE("Executor<SUB>") {
     ctx.vx[2] = 3;
     Executor<Instruction::SUB>{1, 2}(ctx);
     REQUIRE(ctx.vx[1] == 7);
+    REQUIRE(ctx.vx[0xF] == 1); // Vx > Vy: no borrow, VF = 1
   }
   SECTION("wraps on underflow") {
     CHIP8 ctx{};
@@ -47,9 +48,322 @@ TEST_CASE("Executor<SUB>") {
     ctx.vx[1] = 1;
     Executor<Instruction::SUB>{0, 1}(ctx);
     REQUIRE(ctx.vx[0] == 255);
+    REQUIRE(ctx.vx[0xF] == 0); // Vx < Vy: borrow, VF = 0
+  }
+  SECTION("sets VF=0 when Vx equals Vy") {
+    CHIP8 ctx{};
+    ctx.vx[0] = 5;
+    ctx.vx[1] = 5;
+    Executor<Instruction::SUB>{0, 1}(ctx);
+    REQUIRE(ctx.vx[0] == 0);
+    REQUIRE(ctx.vx[0xF] == 0); // Vx == Vy: not greater, VF = 0
   }
   SECTION("next_pc is Increment{1}") {
     auto next = Executor<Instruction::SUB>{0, 1}.next_pc();
+    REQUIRE(std::holds_alternative<Increment>(next));
+    REQUIRE(std::get<Increment>(next).by == 1);
+  }
+}
+
+// ── Executor<LD> ─────────────────────────────────────────────────────────────
+
+TEST_CASE("Executor<LD>") {
+  SECTION("copies vx[y] into vx[x]") {
+    CHIP8 ctx{};
+    ctx.vx[2] = 42;
+    Executor<Instruction::LD>{1, 2}(ctx);
+    REQUIRE(ctx.vx[1] == 42);
+  }
+  SECTION("does not modify vx[y]") {
+    CHIP8 ctx{};
+    ctx.vx[3] = 99;
+    Executor<Instruction::LD>{0, 3}(ctx);
+    REQUIRE(ctx.vx[3] == 99);
+  }
+  SECTION("overwrites existing value in vx[x]") {
+    CHIP8 ctx{};
+    ctx.vx[0] = 100;
+    ctx.vx[1] = 7;
+    Executor<Instruction::LD>{0, 1}(ctx);
+    REQUIRE(ctx.vx[0] == 7);
+  }
+  SECTION("does not touch other registers") {
+    CHIP8 ctx{};
+    ctx.vx[5] = 7;
+    Executor<Instruction::LD>{1, 5}(ctx);
+    for (int i = 0; i < 16; ++i)
+      if (i != 1 && i != 5)
+        REQUIRE(ctx.vx[i] == 0);
+  }
+  SECTION("next_pc is Increment{1}") {
+    auto next = Executor<Instruction::LD>{0, 1}.next_pc();
+    REQUIRE(std::holds_alternative<Increment>(next));
+    REQUIRE(std::get<Increment>(next).by == 1);
+  }
+}
+
+// ── Executor<LD_IMM> ─────────────────────────────────────────────────────────
+
+TEST_CASE("Executor<LD_IMM>") {
+  SECTION("sets vx[x] to kk") {
+    CHIP8 ctx{};
+    Executor<Instruction::LD_IMM>{4, 0xAB}(ctx);
+    REQUIRE(ctx.vx[4] == 0xAB);
+  }
+  SECTION("overwrites existing value") {
+    CHIP8 ctx{};
+    ctx.vx[0] = 100;
+    Executor<Instruction::LD_IMM>{0, 55}(ctx);
+    REQUIRE(ctx.vx[0] == 55);
+  }
+  SECTION("does not touch other registers") {
+    CHIP8 ctx{};
+    Executor<Instruction::LD_IMM>{2, 1}(ctx);
+    for (int i = 0; i < 16; ++i)
+      if (i != 2)
+        REQUIRE(ctx.vx[i] == 0);
+  }
+  SECTION("next_pc is Increment{1}") {
+    auto next = Executor<Instruction::LD_IMM>{0, 0}.next_pc();
+    REQUIRE(std::holds_alternative<Increment>(next));
+    REQUIRE(std::get<Increment>(next).by == 1);
+  }
+}
+
+// ── Executor<OR> ─────────────────────────────────────────────────────────────
+
+TEST_CASE("Executor<OR>") {
+  SECTION("Vx = Vx OR Vy") {
+    CHIP8 ctx{};
+    ctx.vx[0] = 0b10101010;
+    ctx.vx[1] = 0b01010101;
+    Executor<Instruction::OR>{0, 1}(ctx);
+    REQUIRE(ctx.vx[0] == 0xFF);
+  }
+  SECTION("OR with zero leaves Vx unchanged") {
+    CHIP8 ctx{};
+    ctx.vx[2] = 0xAB;
+    Executor<Instruction::OR>{2, 3}(ctx);
+    REQUIRE(ctx.vx[2] == 0xAB);
+  }
+  SECTION("does not modify Vy") {
+    CHIP8 ctx{};
+    ctx.vx[1] = 0x0F;
+    Executor<Instruction::OR>{0, 1}(ctx);
+    REQUIRE(ctx.vx[1] == 0x0F);
+  }
+  SECTION("next_pc is Increment{1}") {
+    auto next = Executor<Instruction::OR>{0, 1}.next_pc();
+    REQUIRE(std::holds_alternative<Increment>(next));
+    REQUIRE(std::get<Increment>(next).by == 1);
+  }
+}
+
+// ── Executor<AND> ────────────────────────────────────────────────────────────
+
+TEST_CASE("Executor<AND>") {
+  SECTION("Vx = Vx AND Vy") {
+    CHIP8 ctx{};
+    ctx.vx[0] = 0b11001100;
+    ctx.vx[1] = 0b10101010;
+    Executor<Instruction::AND>{0, 1}(ctx);
+    REQUIRE(ctx.vx[0] == 0b10001000);
+  }
+  SECTION("AND with 0xFF leaves Vx unchanged") {
+    CHIP8 ctx{};
+    ctx.vx[2] = 0x5A;
+    ctx.vx[3] = 0xFF;
+    Executor<Instruction::AND>{2, 3}(ctx);
+    REQUIRE(ctx.vx[2] == 0x5A);
+  }
+  SECTION("AND with zero clears Vx") {
+    CHIP8 ctx{};
+    ctx.vx[0] = 0xFF;
+    Executor<Instruction::AND>{0, 1}(ctx);
+    REQUIRE(ctx.vx[0] == 0);
+  }
+  SECTION("next_pc is Increment{1}") {
+    auto next = Executor<Instruction::AND>{0, 1}.next_pc();
+    REQUIRE(std::holds_alternative<Increment>(next));
+    REQUIRE(std::get<Increment>(next).by == 1);
+  }
+}
+
+// ── Executor<XOR> ────────────────────────────────────────────────────────────
+
+TEST_CASE("Executor<XOR>") {
+  SECTION("Vx = Vx XOR Vy") {
+    CHIP8 ctx{};
+    ctx.vx[0] = 0b11001100;
+    ctx.vx[1] = 0b10101010;
+    Executor<Instruction::XOR>{0, 1}(ctx);
+    REQUIRE(ctx.vx[0] == 0b01100110);
+  }
+  SECTION("XOR with same value clears Vx") {
+    CHIP8 ctx{};
+    ctx.vx[2] = 0xAB;
+    ctx.vx[3] = 0xAB;
+    Executor<Instruction::XOR>{2, 3}(ctx);
+    REQUIRE(ctx.vx[2] == 0);
+  }
+  SECTION("XOR with zero leaves Vx unchanged") {
+    CHIP8 ctx{};
+    ctx.vx[3] = 0x3C;
+    Executor<Instruction::XOR>{3, 4}(ctx);
+    REQUIRE(ctx.vx[3] == 0x3C);
+  }
+  SECTION("next_pc is Increment{1}") {
+    auto next = Executor<Instruction::XOR>{0, 1}.next_pc();
+    REQUIRE(std::holds_alternative<Increment>(next));
+    REQUIRE(std::get<Increment>(next).by == 1);
+  }
+}
+
+// ── Executor<ADD> ────────────────────────────────────────────────────────────
+
+TEST_CASE("Executor<ADD>") {
+  SECTION("adds vx[y] to vx[x] without carry") {
+    CHIP8 ctx{};
+    ctx.vx[1] = 10;
+    ctx.vx[2] = 20;
+    Executor<Instruction::ADD>{1, 2}(ctx);
+    REQUIRE(ctx.vx[1] == 30);
+    REQUIRE(ctx.vx[0xF] == 0);
+  }
+  SECTION("wraps on overflow and sets VF=1") {
+    CHIP8 ctx{};
+    ctx.vx[1] = 200;
+    ctx.vx[2] = 100;
+    Executor<Instruction::ADD>{1, 2}(ctx);
+    REQUIRE(ctx.vx[1] == 44); // 300 - 256
+    REQUIRE(ctx.vx[0xF] == 1);
+  }
+  SECTION("sum exactly 255 does not carry") {
+    CHIP8 ctx{};
+    ctx.vx[0] = 200;
+    ctx.vx[1] = 55;
+    Executor<Instruction::ADD>{0, 1}(ctx);
+    REQUIRE(ctx.vx[0] == 255);
+    REQUIRE(ctx.vx[0xF] == 0);
+  }
+  SECTION("sum exactly 256 carries") {
+    CHIP8 ctx{};
+    ctx.vx[0] = 200;
+    ctx.vx[1] = 56;
+    Executor<Instruction::ADD>{0, 1}(ctx);
+    REQUIRE(ctx.vx[0] == 0);
+    REQUIRE(ctx.vx[0xF] == 1);
+  }
+  SECTION("next_pc is Increment{1}") {
+    auto next = Executor<Instruction::ADD>{0, 1}.next_pc();
+    REQUIRE(std::holds_alternative<Increment>(next));
+    REQUIRE(std::get<Increment>(next).by == 1);
+  }
+}
+
+// ── Executor<SHR> ────────────────────────────────────────────────────────────
+
+TEST_CASE("Executor<SHR>") {
+  SECTION("shifts vx[x] right by one") {
+    CHIP8 ctx{};
+    ctx.vx[2] = 0b00001110;
+    Executor<Instruction::SHR>{2, 0}(ctx);
+    REQUIRE(ctx.vx[2] == 0b00000111);
+  }
+  SECTION("sets VF=1 when LSB is 1") {
+    CHIP8 ctx{};
+    ctx.vx[1] = 0b00000011;
+    Executor<Instruction::SHR>{1, 0}(ctx);
+    REQUIRE(ctx.vx[1] == 0b00000001);
+    REQUIRE(ctx.vx[0xF] == 1);
+  }
+  SECTION("sets VF=0 when LSB is 0") {
+    CHIP8 ctx{};
+    ctx.vx[1] = 0b00001100;
+    Executor<Instruction::SHR>{1, 0}(ctx);
+    REQUIRE(ctx.vx[1] == 0b00000110);
+    REQUIRE(ctx.vx[0xF] == 0);
+  }
+  SECTION("next_pc is Increment{1}") {
+    auto next = Executor<Instruction::SHR>{0, 1}.next_pc();
+    REQUIRE(std::holds_alternative<Increment>(next));
+    REQUIRE(std::get<Increment>(next).by == 1);
+  }
+}
+
+// ── Executor<SUBN> ───────────────────────────────────────────────────────────
+
+TEST_CASE("Executor<SUBN>") {
+  SECTION("stores Vy - Vx in Vx when Vy > Vx") {
+    CHIP8 ctx{};
+    ctx.vx[1] = 3;
+    ctx.vx[2] = 10;
+    Executor<Instruction::SUBN>{1, 2}(ctx);
+    REQUIRE(ctx.vx[1] == 7); // Vx = Vy - Vx = 10 - 3
+    REQUIRE(ctx.vx[0xF] == 1);
+  }
+  SECTION("sets VF=0 when Vy < Vx") {
+    CHIP8 ctx{};
+    ctx.vx[1] = 10;
+    ctx.vx[2] = 3;
+    Executor<Instruction::SUBN>{1, 2}(ctx);
+    REQUIRE(ctx.vx[0xF] == 0);
+  }
+  SECTION("wraps on underflow") {
+    CHIP8 ctx{};
+    ctx.vx[1] = 10; // Vx
+    ctx.vx[2] = 3;  // Vy: Vy - Vx = 3 - 10 wraps to 249
+    Executor<Instruction::SUBN>{1, 2}(ctx);
+    REQUIRE(ctx.vx[1] == 249);
+    REQUIRE(ctx.vx[0xF] == 0);
+  }
+  SECTION("sets VF=0 when Vy equals Vx") {
+    CHIP8 ctx{};
+    ctx.vx[1] = 5;
+    ctx.vx[2] = 5;
+    Executor<Instruction::SUBN>{1, 2}(ctx);
+    REQUIRE(ctx.vx[1] == 0);
+    REQUIRE(ctx.vx[0xF] == 0);
+  }
+  SECTION("next_pc is Increment{1}") {
+    auto next = Executor<Instruction::SUBN>{0, 1}.next_pc();
+    REQUIRE(std::holds_alternative<Increment>(next));
+    REQUIRE(std::get<Increment>(next).by == 1);
+  }
+}
+
+// ── Executor<SHL> ────────────────────────────────────────────────────────────
+
+TEST_CASE("Executor<SHL>") {
+  SECTION("shifts vx[x] left by one") {
+    CHIP8 ctx{};
+    ctx.vx[1] = 0b00000010;
+    Executor<Instruction::SHL>{1, 0}(ctx);
+    REQUIRE(ctx.vx[1] == 0b00000100);
+  }
+  SECTION("sets VF=1 when MSB is 1") {
+    CHIP8 ctx{};
+    ctx.vx[1] = 0b10000000;
+    Executor<Instruction::SHL>{1, 0}(ctx);
+    REQUIRE(ctx.vx[1] == 0);
+    REQUIRE(ctx.vx[0xF] == 1);
+  }
+  SECTION("sets VF=0 when MSB is 0") {
+    CHIP8 ctx{};
+    ctx.vx[1] = 0b00000001;
+    Executor<Instruction::SHL>{1, 0}(ctx);
+    REQUIRE(ctx.vx[1] == 0b00000010);
+    REQUIRE(ctx.vx[0xF] == 0);
+  }
+  SECTION("VF captures MSB before shift") {
+    CHIP8 ctx{};
+    ctx.vx[2] = 0b11000000;
+    Executor<Instruction::SHL>{2, 0}(ctx);
+    REQUIRE(ctx.vx[2] == 0b10000000); // low 8 bits of 0b110000000
+    REQUIRE(ctx.vx[0xF] == 1);
+  }
+  SECTION("next_pc is Increment{1}") {
+    auto next = Executor<Instruction::SHL>{0, 1}.next_pc();
     REQUIRE(std::holds_alternative<Increment>(next));
     REQUIRE(std::get<Increment>(next).by == 1);
   }
@@ -235,6 +549,86 @@ TEST_CASE("Parser") {
     CHIP8 ctx{};
     exec(ctx);
     REQUIRE(ctx.vx[3] == 7);
+  }
+  SECTION("0x8120 decodes to LD V1, V2") {
+    constexpr auto exec = Parser<0x8120>{}();
+    CHIP8 ctx{};
+    ctx.vx[2] = 55;
+    exec(ctx);
+    REQUIRE(ctx.vx[1] == 55);
+  }
+  SECTION("0x6145 decodes to LD_IMM V1, 0x45") {
+    constexpr auto exec = Parser<0x6145>{}();
+    CHIP8 ctx{};
+    exec(ctx);
+    REQUIRE(ctx.vx[1] == 0x45);
+  }
+  SECTION("0x8121 decodes to OR V1, V2") {
+    constexpr auto exec = Parser<0x8121>{}();
+    CHIP8 ctx{};
+    ctx.vx[1] = 0x0F;
+    ctx.vx[2] = 0xF0;
+    exec(ctx);
+    REQUIRE(ctx.vx[1] == 0xFF);
+  }
+  SECTION("0x8122 decodes to AND V1, V2") {
+    constexpr auto exec = Parser<0x8122>{}();
+    CHIP8 ctx{};
+    ctx.vx[1] = 0xFF;
+    ctx.vx[2] = 0xAA;
+    exec(ctx);
+    REQUIRE(ctx.vx[1] == 0xAA);
+  }
+  SECTION("0x8123 decodes to XOR V1, V2") {
+    constexpr auto exec = Parser<0x8123>{}();
+    CHIP8 ctx{};
+    ctx.vx[1] = 0xFF;
+    ctx.vx[2] = 0xFF;
+    exec(ctx);
+    REQUIRE(ctx.vx[1] == 0);
+  }
+  SECTION("0x8124 decodes to ADD V1, V2 with carry") {
+    constexpr auto exec = Parser<0x8124>{}();
+    CHIP8 ctx{};
+    ctx.vx[1] = 200;
+    ctx.vx[2] = 100;
+    exec(ctx);
+    REQUIRE(ctx.vx[1] == 44);
+    REQUIRE(ctx.vx[0xF] == 1);
+  }
+  SECTION("0x8125 decodes to SUB V1, V2 with VF") {
+    constexpr auto exec = Parser<0x8125>{}();
+    CHIP8 ctx{};
+    ctx.vx[1] = 10;
+    ctx.vx[2] = 3;
+    exec(ctx);
+    REQUIRE(ctx.vx[1] == 7);
+    REQUIRE(ctx.vx[0xF] == 1);
+  }
+  SECTION("0x8126 decodes to SHR V1 with LSB in VF") {
+    constexpr auto exec = Parser<0x8126>{}();
+    CHIP8 ctx{};
+    ctx.vx[1] = 0b00000110;
+    exec(ctx);
+    REQUIRE(ctx.vx[1] == 0b00000011);
+    REQUIRE(ctx.vx[0xF] == 0);
+  }
+  SECTION("0x8127 decodes to SUBN V1, V2") {
+    constexpr auto exec = Parser<0x8127>{}();
+    CHIP8 ctx{};
+    ctx.vx[1] = 3;
+    ctx.vx[2] = 10;
+    exec(ctx);
+    REQUIRE(ctx.vx[1] == 7); // Vx = Vy - Vx = 10 - 3
+    REQUIRE(ctx.vx[0xF] == 1);
+  }
+  SECTION("0x812E decodes to SHL V1 with MSB in VF") {
+    constexpr auto exec = Parser<0x812E>{}();
+    CHIP8 ctx{};
+    ctx.vx[1] = 0b10000000;
+    exec(ctx);
+    REQUIRE(ctx.vx[1] == 0);
+    REQUIRE(ctx.vx[0xF] == 1);
   }
 }
 
