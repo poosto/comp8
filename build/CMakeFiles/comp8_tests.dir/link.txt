@@ -1,1 +1,0 @@
-/usr/bin/c++ -g -arch arm64 -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/comp8_tests.dir/tests.cpp.o -o comp8_tests  /opt/homebrew/lib/libCatch2Main.a /opt/homebrew/lib/libCatch2.a

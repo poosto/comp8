@@ -1,8 +1,0 @@
-Executor<ADD_IMM> 9 0.000159403
-Executor<SUB> 6 0.000298076
-Executor<JUMP> 9 0.000180884
-Executor<INDIRECT_JUMP> 9 0.000181463
-Executor<SNE> 9 0.00016312
-Parser 9 0.000188991
-execute_program 9 0.000166907
----

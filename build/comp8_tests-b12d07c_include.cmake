@@ -1,5 +1,0 @@
-if(EXISTS "/Users/prestonmeek/Desktop/PROJECTS/comp8/build/comp8_tests-b12d07c_tests.cmake")
-  include("/Users/prestonmeek/Desktop/PROJECTS/comp8/build/comp8_tests-b12d07c_tests.cmake")
-else()
-  add_test(comp8_tests_NOT_BUILT-b12d07c comp8_tests_NOT_BUILT-b12d07c)
-endif()
