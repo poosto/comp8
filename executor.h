@@ -339,3 +339,18 @@ template <> struct Executor<Instruction::LD_I> {
 
   auto operator()(CHIP8 &ctx) const noexcept -> void { ctx.I = nnn_; }
 };
+
+template <> struct Executor<Instruction::RND> {
+  const uint8_t x_;
+  const uint8_t kk_;
+
+  constexpr Executor(uint8_t x, uint8_t kk) : x_{x}, kk_{kk} {}
+
+  constexpr auto next_pc() const noexcept -> NextPC { return Increment{}; }
+
+  auto operator()(CHIP8 &ctx) const noexcept -> void {
+    // Vx = (random byte) AND kk
+    ctx.regfile[x_] =
+        (rand() % (std::numeric_limits<uint8_t>::max() + 1)) & kk_;
+  }
+};

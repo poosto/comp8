@@ -16,7 +16,8 @@ template <Opcode Op> struct Parser {
       MATH = 0x8,
       SNE = 0x9,
       LD_I = 0xA,
-      INDIRECT_JUMP = 0xB
+      INDIRECT_JUMP = 0xB,
+      RND = 0xC
     };
 
     constexpr uint8_t x = (Op >> 8) & 0xF;
@@ -96,6 +97,8 @@ template <Opcode Op> struct Parser {
       return Executor<Instruction::LD_I>{nnn};
     } else if constexpr (front_tag == FrontTag::INDIRECT_JUMP) {
       return Executor<Instruction::INDIRECT_JUMP>{nnn};
+    } else if constexpr (front_tag == FrontTag::RND) {
+      return Executor<Instruction::RND>{x, kk};
     } else {
       static_assert(false, "Unhandled opcode");
       std::terminate();
