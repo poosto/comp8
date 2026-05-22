@@ -49,13 +49,11 @@ template <> struct Executor<Instruction::RET> {
 
   constexpr auto next_pc() const noexcept -> NextPC { return DynamicJump{}; }
 
-  // TODO: change target() interface to always be non-const?
-  // Or move the decrememt to execute?
-  auto target(CHIP8 &ctx) const noexcept -> uint16_t {
-    return ctx.stack[--ctx.sp];
+  auto target(const CHIP8 &ctx) const noexcept -> uint16_t {
+    return ctx.stack[ctx.sp];
   }
 
-  auto operator()(CHIP8 &) const noexcept -> void {}
+  auto operator()(CHIP8 &ctx) const noexcept -> void { --ctx.sp; }
 };
 
 template <> struct Executor<Instruction::ADD_IMM> {
@@ -77,7 +75,7 @@ template <> struct Executor<Instruction::ADD_IMM> {
   }
 };
 
-template <> struct Executor<Instruction::JUMP> {
+template <> struct Executor<Instruction::JP> {
   const uint16_t nnn_;
 
   constexpr Executor(uint16_t nnn) : nnn_{nnn} {}
@@ -87,6 +85,20 @@ template <> struct Executor<Instruction::JUMP> {
   }
 
   auto operator()(CHIP8 &) const noexcept -> void {}
+};
+
+template <> struct Executor<Instruction::CALL> {
+  const uint16_t nnn_;
+
+  constexpr Executor(uint16_t nnn) : nnn_{nnn} {}
+
+  constexpr auto next_pc() const noexcept -> NextPC {
+    return Jump{.target = nnn_};
+  }
+
+  auto operator()(CHIP8 &ctx) const noexcept -> void {
+    ctx.stack[ctx.sp++] = ctx.pc;
+  }
 };
 
 template <> struct Executor<Instruction::INDIRECT_JUMP> {

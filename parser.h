@@ -6,7 +6,8 @@ template <Opcode Op> struct Parser {
   constexpr auto operator()() {
     enum class FrontTag : uint8_t {
       CHIP8_COMMANDS = 0x0,
-      JUMP = 0x1,
+      JP = 0x1,
+      CALL = 0x2,
       SE_IMM = 0x3,
       SNE_IMM = 0x4,
       SE = 0x5,
@@ -38,8 +39,10 @@ template <Opcode Op> struct Parser {
         // SYS instruction does not have a back tag as its format is 0nnn
         return Executor<Instruction::SYS>{nnn};
       }
-    } else if constexpr (front_tag == FrontTag::JUMP) {
-      return Executor<Instruction::JUMP>{nnn};
+    } else if constexpr (front_tag == FrontTag::JP) {
+      return Executor<Instruction::JP>{nnn};
+    } else if constexpr (front_tag == FrontTag::CALL) {
+      return Executor<Instruction::CALL>{nnn};
     } else if constexpr (front_tag == FrontTag::SE_IMM) {
       return Executor<Instruction::SE_IMM>{x, kk};
     } else if constexpr (front_tag == FrontTag::SNE_IMM) {
