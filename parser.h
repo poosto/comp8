@@ -59,8 +59,16 @@ template <Opcode Op> struct Parser {
         return Executor<Instruction::AND>{x, y};
       } else if constexpr (back_tag == BackTag::XOR) {
         return Executor<Instruction::XOR>{x, y};
+      } else if constexpr (back_tag == BackTag::ADD) {
+        return Executor<Instruction::ADD>{x, y};
       } else if constexpr (back_tag == BackTag::SUB) {
         return Executor<Instruction::SUB>{x, y};
+      } else if constexpr (back_tag == BackTag::SHR) {
+        return Executor<Instruction::SHR>{x, y};
+      } else if constexpr (back_tag == BackTag::SUBN) {
+        return Executor<Instruction::SUBN>{x, y};
+      } else if constexpr (back_tag == BackTag::SHL) {
+        return Executor<Instruction::SHL>{x, y};
       } else {
         // TODO: handle other cases
         static_assert(false, "Unhandled opcode");
