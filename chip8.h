@@ -26,27 +26,28 @@ struct CHIP8 {
 using Opcode = uint16_t;
 
 enum class Instruction {
-  SYS,
-  CLS,
-  RET,
-  JP,
-  CALL,
-  SE_IMM,
-  SNE_IMM,
-  SE,
-  LD,
-  ADD_IMM,
-  OR,
-  AND,
-  XOR,
-  ADD,
-  SUB,
-  SHR,
-  SUBN,
-  SHL,
-  LD_IMM,
-  SNE,
-  INDIRECT_JUMP
+  SYS,          // 0nnn
+  CLS,          // 00E0
+  RET,          // 00EE
+  JP,           // 1nnn
+  CALL,         // 2nnn
+  SE_IMM,       // 3xkk
+  SNE_IMM,      // 4xkk
+  SE,           // 5xy0
+  LD_IMM,       // 6xkk
+  ADD_IMM,      // 7xkk
+  LD,           // 8xy0
+  OR,           // 8xy1
+  AND,          // 8xy2
+  XOR,          // 8xy3
+  ADD,          // 8xy4
+  SUB,          // 8xy5
+  SHR,          // 8xy6
+  SUBN,         // 8xy7
+  SHL,          // 8xyE
+  SNE,          // 9xy0
+  LD_I,         // Annn
+  INDIRECT_JUMP // Bnnn TODO: rename this enum
 };
 
 struct Increment {
