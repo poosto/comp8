@@ -6,6 +6,7 @@ template <Opcode Op> struct Parser {
   constexpr auto operator()() {
     enum class FrontTag {
       JUMP = 0x1,
+      SE = 0x5,
       ADD_IMM = 0x7,
       MATH = 0x8,
       SNE = 0x9,
@@ -22,6 +23,8 @@ template <Opcode Op> struct Parser {
 
     if constexpr (front_tag == FrontTag::JUMP) {
       return Executor<Instruction::JUMP>{nnn};
+    } else if constexpr (front_tag == FrontTag::SE) {
+      return Executor<Instruction::SE>{x, y};
     } else if constexpr (front_tag == FrontTag::ADD_IMM) {
       return Executor<Instruction::ADD_IMM>{x, kk};
     } else if constexpr (front_tag == FrontTag::MATH) {

@@ -5,14 +5,14 @@
 
 #include "chip8.h"
 
-template <Instruction> struct Executor {
+template <Instruction I, bool Cond = true> struct Executor {
   auto operator()(CHIP8 &) const noexcept -> void {
     static_assert(false, "Unhandled instruction");
     std::terminate();
   }
 };
 
-template <> struct Executor<Instruction::ADD_IMM> {
+template <> struct Executor<Instruction::ADD_IMM, true> {
   const uint8_t x_;
   const uint8_t kk_;
 
@@ -31,7 +31,7 @@ template <> struct Executor<Instruction::ADD_IMM> {
   }
 };
 
-template <> struct Executor<Instruction::SUB> {
+template <> struct Executor<Instruction::SUB, true> {
   const uint8_t x_;
   const uint8_t y_;
 
@@ -50,7 +50,7 @@ template <> struct Executor<Instruction::SUB> {
   }
 };
 
-template <> struct Executor<Instruction::JUMP> {
+template <> struct Executor<Instruction::JUMP, true> {
   const uint16_t nnn_;
 
   constexpr Executor(uint16_t nnn) : nnn_{nnn} {}
@@ -62,7 +62,7 @@ template <> struct Executor<Instruction::JUMP> {
   auto operator()(CHIP8 &) const noexcept -> void {}
 };
 
-template <> struct Executor<Instruction::INDIRECT_JUMP> {
+template <> struct Executor<Instruction::INDIRECT_JUMP, true> {
   const uint16_t nnn_;
 
   constexpr Executor(uint16_t nnn) : nnn_{nnn} {}
@@ -76,7 +76,7 @@ template <> struct Executor<Instruction::INDIRECT_JUMP> {
   auto operator()(CHIP8 &) const noexcept -> void {}
 };
 
-template <> struct Executor<Instruction::SNE> {
+template <bool Cond> struct Executor<Instruction::SE, Cond> {
   const uint8_t x_;
   const uint8_t y_;
 
@@ -87,8 +87,17 @@ template <> struct Executor<Instruction::SNE> {
   }
 
   auto condition(CHIP8 &ctx) const noexcept -> bool {
-    return ctx.vx[x_] != ctx.vx[y_];
+    if constexpr (Cond) {
+      return ctx.vx[x_] == ctx.vx[y_];
+    } else {
+      return ctx.vx[x_] != ctx.vx[y_];
+    }
   }
 
   auto operator()(CHIP8 &) const noexcept -> void {}
+};
+
+template <>
+struct Executor<Instruction::SNE> : Executor<Instruction::SE, false> {
+  using Executor<Instruction::SE, false>::Executor;
 };
