@@ -23,6 +23,17 @@ concept BinaryOp = std::regular_invocable<Op, T, T> &&
 
 template <BinaryOp<uint8_t>> struct ArithmeticExecutor;
 
+// Treated as a NOP (for now..?)
+template <> struct Executor<Instruction::SYS> {
+  const uint16_t nnn_{};
+
+  constexpr Executor(uint16_t nnn) : nnn_{nnn} {}
+
+  constexpr auto next_pc() const noexcept -> NextPC { return Increment{}; }
+
+  auto operator()(CHIP8 &) const noexcept -> void {}
+};
+
 template <> struct Executor<Instruction::CLS> {
   constexpr Executor() {}
 
@@ -33,13 +44,16 @@ template <> struct Executor<Instruction::CLS> {
   }
 };
 
-// Treated as a NOP (for now..?)
-template <> struct Executor<Instruction::SYS> {
-  const uint16_t nnn_{};
+template <> struct Executor<Instruction::RET> {
+  constexpr Executor() {}
 
-  constexpr Executor(uint16_t nnn) : nnn_{nnn} {}
+  constexpr auto next_pc() const noexcept -> NextPC { return DynamicJump{}; }
 
-  constexpr auto next_pc() const noexcept -> NextPC { return Increment{}; }
+  // TODO: change target() interface to always be non-const?
+  // Or move the decrememt to execute?
+  auto target(CHIP8 &ctx) const noexcept -> uint16_t {
+    return ctx.stack[--ctx.sp];
+  }
 
   auto operator()(CHIP8 &) const noexcept -> void {}
 };

@@ -15,15 +15,20 @@ struct CHIP8 {
       vram_flat.data()};
 
   std::array<uint8_t, 16> regfile{};
+  uint16_t I{};
+
   uint16_t pc{};
-  uint8_t stack{};
+
+  std::array<uint16_t, 16> stack{};
+  uint8_t sp{};
 };
 
 using Opcode = uint16_t;
 
 enum class Instruction {
-  CLS,
   SYS,
+  CLS,
+  RET,
   ADD_IMM,
   JUMP,
   SE_IMM,

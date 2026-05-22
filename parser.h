@@ -33,7 +33,7 @@ template <Opcode Op> struct Parser {
       if constexpr (back_tag == BackTag::CLS) {
         return Executor<Instruction::CLS>{};
       } else if constexpr (back_tag == BackTag::RET) {
-
+        return Executor<Instruction::RET>{};
       } else {
         // SYS instruction does not have a back tag as its format is 0nnn
         return Executor<Instruction::SYS>{nnn};
