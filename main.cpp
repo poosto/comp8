@@ -3,6 +3,8 @@
 #include <cstdio>
 #include <string_view>
 
+// TODO: read thru the article about chip8 static recomp
+
 template <typename T>
 static inline auto print_arr(std::string_view prefix, T arr) -> void {
   printf("%.*s", (int)prefix.size(), prefix.data());

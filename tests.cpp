@@ -635,33 +635,39 @@ TEST_CASE("Parser") {
 // ── execute_program ──────────────────────────────────────────────────────────
 
 TEST_CASE("execute_program") {
-  SECTION("V0=0: skips loop, post-loop runs once") {
-    CHIP8 ctx{};
-    execute_program(ctx);
-    REQUIRE(ctx.vx[0] == 0);
-    REQUIRE(ctx.vx[2] == 0);
-    REQUIRE(ctx.vx[3] == 7);
-  }
-  SECTION("V0=1: one iteration") {
+  SECTION("loop always runs exactly 5 times") {
     CHIP8 ctx{};
     ctx.vx[0] = 1;
     execute_program(ctx);
-    REQUIRE(ctx.vx[0] == 0);
-    REQUIRE(ctx.vx[2] == 1);
+    REQUIRE(ctx.vx[0] == 1);  // V0 (argc) unchanged
+    REQUIRE(ctx.vx[1] == 0);  // loop counter exhausted
+    REQUIRE(ctx.vx[2] == 5);  // 5 * 1
     REQUIRE(ctx.vx[3] == 7);
   }
-  SECTION("V0=3: three iterations") {
+  SECTION("accumulates V0 five times") {
     CHIP8 ctx{};
     ctx.vx[0] = 3;
     execute_program(ctx);
-    REQUIRE(ctx.vx[0] == 0);
-    REQUIRE(ctx.vx[2] == 3);
+    REQUIRE(ctx.vx[2] == 15); // 5 * 3
+    REQUIRE(ctx.vx[3] == 7);
+  }
+  SECTION("with V0=0 accumulator stays zero") {
+    CHIP8 ctx{};
+    execute_program(ctx);
+    REQUIRE(ctx.vx[1] == 0);
+    REQUIRE(ctx.vx[2] == 0);
+    REQUIRE(ctx.vx[3] == 7);
+  }
+  SECTION("accumulator wraps on overflow") {
+    CHIP8 ctx{};
+    ctx.vx[0] = 52; // 5 * 52 = 260, wraps to 4
+    execute_program(ctx);
+    REQUIRE(ctx.vx[2] == 4);
     REQUIRE(ctx.vx[3] == 7);
   }
   SECTION("unrelated registers are not modified") {
     CHIP8 ctx{};
-    ctx.vx[0] = 2;
-    execute_program(ctx);
+    execute_program(ctx); // V0=0: no ADD carry, VF stays 0
     for (int i = 4; i < 16; ++i)
       REQUIRE(ctx.vx[i] == 0);
   }
