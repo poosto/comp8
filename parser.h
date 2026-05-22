@@ -15,7 +15,7 @@ template <Opcode Op> struct Parser {
       ADD_IMM = 0x7,
       MATH = 0x8,
       SNE = 0x9,
-      SET = 0xA,
+      LD_I = 0xA,
       INDIRECT_JUMP = 0xB
     };
 
@@ -92,6 +92,8 @@ template <Opcode Op> struct Parser {
       }
     } else if constexpr (front_tag == FrontTag::SNE) {
       return Executor<Instruction::SNE>{x, y};
+    } else if constexpr (front_tag == FrontTag::LD_I) {
+      return Executor<Instruction::LD_I>{nnn};
     } else if constexpr (front_tag == FrontTag::INDIRECT_JUMP) {
       return Executor<Instruction::INDIRECT_JUMP>{nnn};
     } else {

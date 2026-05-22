@@ -329,3 +329,13 @@ template <> struct Executor<Instruction::SHL> {
     vx <<= 1;
   }
 };
+
+template <> struct Executor<Instruction::LD_I> {
+  const uint16_t nnn_;
+
+  constexpr Executor(uint16_t nnn) : nnn_{nnn} {}
+
+  constexpr auto next_pc() const noexcept -> NextPC { return Increment{}; }
+
+  auto operator()(CHIP8 &ctx) const noexcept -> void { ctx.I = nnn_; }
+};
