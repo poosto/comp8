@@ -6,8 +6,7 @@
 
 // TOOD: convert Seen pack to pre-computed back-edge table
 // This avoids templated functions exploding with different Seen parameters
-template <uint16_t PC, uint16_t... Seen>
-static inline auto run(CHIP8 &ctx) -> void {
+template <uint16_t PC, uint16_t... Seen> inline auto run(CHIP8 &ctx) -> void {
   if constexpr (PC >= GAME_ROM.size() || ((Seen == PC) || ...)) {
     ctx.pc = PC;
     return;
