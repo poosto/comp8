@@ -264,3 +264,20 @@ template <> struct Executor<Instruction::SUBN> {
     }
   }
 };
+
+template <> struct Executor<Instruction::SHL> {
+  const uint8_t x_;
+  const uint8_t y_;
+
+  constexpr Executor(uint8_t x, uint8_t y) : x_{x}, y_{y} {}
+
+  constexpr auto next_pc() const noexcept -> NextPC { return Increment{}; }
+
+  auto operator()(CHIP8 &ctx) const noexcept -> void {
+    auto &vx = ctx.vx[x_], &vf = ctx.vx[0xF];
+
+    vf = ((vx >> 0xF) & 0x1) ? 1 : 0;
+
+    vx <<= 1;
+  }
+};
