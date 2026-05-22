@@ -76,6 +76,32 @@ template <> struct Executor<Instruction::INDIRECT_JUMP, true> {
   auto operator()(CHIP8 &) const noexcept -> void {}
 };
 
+template <bool Cond> struct Executor<Instruction::SE_IMM, Cond> {
+  const uint8_t x_;
+  const uint8_t kk_;
+
+  constexpr Executor(uint8_t x, uint8_t kk) : x_{x}, kk_{kk} {}
+
+  constexpr auto next_pc() const noexcept -> NextPC {
+    return Branch{.skip_by = 2, .fall_by = 1};
+  }
+
+  auto condition(CHIP8 &ctx) const noexcept -> bool {
+    if constexpr (Cond) {
+      return ctx.vx[x_] == ctx.vx[kk_];
+    } else {
+      return ctx.vx[x_] != ctx.vx[kk_];
+    }
+  }
+
+  auto operator()(CHIP8 &) const noexcept -> void {}
+};
+
+template <>
+struct Executor<Instruction::SNE_IMM> : Executor<Instruction::SE_IMM, false> {
+  using Executor<Instruction::SE_IMM, false>::Executor;
+};
+
 template <bool Cond> struct Executor<Instruction::SE, Cond> {
   const uint8_t x_;
   const uint8_t y_;

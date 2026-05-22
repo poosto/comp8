@@ -11,7 +11,17 @@ struct CHIP8 {
 
 using Opcode = uint16_t;
 
-enum class Instruction { NOP, ADD_IMM, SUB, JUMP, SE, SNE, INDIRECT_JUMP };
+enum class Instruction {
+  NOP,
+  ADD_IMM,
+  SUB,
+  JUMP,
+  SE_IMM,
+  SNE_IMM,
+  SE,
+  SNE,
+  INDIRECT_JUMP
+};
 
 struct Increment {
   const uint16_t by{1};
