@@ -70,7 +70,6 @@ template <Opcode Op> struct Parser {
       } else if constexpr (back_tag == BackTag::SHL) {
         return Executor<Instruction::SHL>{x, y};
       } else {
-        // TODO: handle other cases
         static_assert(false, "Unhandled opcode");
         std::terminate();
       }
