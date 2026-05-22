@@ -104,9 +104,9 @@ TEST_CASE("Executor<SE>") {
     ctx.vx[1] = 3;
     REQUIRE(Executor<Instruction::SE>{0, 1}.condition(ctx) == false);
   }
-  SECTION("condition false when both zero") {
+  SECTION("condition true when both zero") {
     CHIP8 ctx{};
-    REQUIRE(Executor<Instruction::SE>{0, 1}.condition(ctx) == false);
+    REQUIRE(Executor<Instruction::SE>{0, 1}.condition(ctx) == true);
   }
   SECTION("next_pc is Branch{skip=2, fall=1}") {
     auto next = Executor<Instruction::SNE>{0, 1}.next_pc();
