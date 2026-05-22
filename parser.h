@@ -9,6 +9,7 @@ template <Opcode Op> struct Parser {
       SE_IMM = 0x3,
       SNE_IMM = 0x4,
       SE = 0x5,
+      LD_IMM = 0x6,
       ADD_IMM = 0x7,
       MATH = 0x8,
       SNE = 0x9,
@@ -31,11 +32,40 @@ template <Opcode Op> struct Parser {
       return Executor<Instruction::SNE_IMM>{x, kk};
     } else if constexpr (front_tag == FrontTag::SE) {
       return Executor<Instruction::SE>{x, y};
+    } else if constexpr (front_tag == FrontTag::LD_IMM) {
+      return Executor<Instruction::LD_IMM>{x, kk};
     } else if constexpr (front_tag == FrontTag::ADD_IMM) {
       return Executor<Instruction::ADD_IMM>{x, kk};
     } else if constexpr (front_tag == FrontTag::MATH) {
-      // TODO: handle other cases based on back tag
-      return Executor<Instruction::SUB>{x, y};
+      enum class BackTag {
+        LD = 0x0,
+        OR = 0x1,
+        AND = 0x2,
+        XOR = 0x3,
+        ADD = 0x4,
+        SUB = 0x5,
+        SHR = 0x6,
+        SUBN = 0x7,
+        SHL = 0xE
+      };
+
+      constexpr BackTag back_tag = BackTag{Op & 0xF};
+
+      if constexpr (back_tag == BackTag::LD) {
+        return Executor<Instruction::LD>{x, y};
+      } else if constexpr (back_tag == BackTag::OR) {
+        return Executor<Instruction::OR>{x, y};
+      } else if constexpr (back_tag == BackTag::AND) {
+        return Executor<Instruction::AND>{x, y};
+      } else if constexpr (back_tag == BackTag::XOR) {
+        return Executor<Instruction::XOR>{x, y};
+      } else if constexpr (back_tag == BackTag::SUB) {
+        return Executor<Instruction::SUB>{x, y};
+      } else {
+        // TODO: handle other cases
+        static_assert(false, "Unhandled opcode");
+        std::terminate();
+      }
     } else if constexpr (front_tag == FrontTag::SNE) {
       return Executor<Instruction::SNE>{x, y};
     } else if constexpr (front_tag == FrontTag::INDIRECT_JUMP) {

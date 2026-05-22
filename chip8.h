@@ -14,11 +14,20 @@ using Opcode = uint16_t;
 enum class Instruction {
   NOP,
   ADD_IMM,
-  SUB,
   JUMP,
   SE_IMM,
   SNE_IMM,
   SE,
+  LD,
+  OR,
+  AND,
+  XOR,
+  ADD,
+  SUB,
+  SHR,
+  SUBN,
+  SHL,
+  LD_IMM,
   SNE,
   INDIRECT_JUMP
 };

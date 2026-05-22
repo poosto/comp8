@@ -14,14 +14,13 @@ template <Instruction> struct Executor {
   }
 };
 
-template <Instruction, bool> struct ConditionalExecutor {
-  ConditionalExecutor() = delete;
+template <Instruction I, bool> struct ConditionalExecutor;
 
-  auto operator()(CHIP8 &) const noexcept -> void {
-    static_assert(false, "Unhandled instruction");
-    std::terminate();
-  }
-};
+template <typename Op, typename T>
+concept BinaryOp = std::regular_invocable<Op, T, T> &&
+                   std::same_as<std::invoke_result_t<Op, T, T>, T>;
+
+template <BinaryOp<uint8_t>> struct ArithmeticExecutor;
 
 template <> struct Executor<Instruction::ADD_IMM> {
   const uint8_t x_;
@@ -150,4 +149,57 @@ template <>
 struct Executor<Instruction::SNE>
     : ConditionalExecutor<Instruction::SE, false> {
   using ConditionalExecutor<Instruction::SE, false>::ConditionalExecutor;
+};
+
+template <> struct Executor<Instruction::LD> {
+  const uint8_t x_;
+  const uint8_t y_;
+
+  constexpr Executor(uint8_t x, uint8_t y) : x_{x}, y_{y} {}
+
+  constexpr auto next_pc() const noexcept -> NextPC { return Increment{}; }
+
+  auto operator()(CHIP8 &ctx) const noexcept -> void {
+    ctx.vx[x_] = ctx.vx[y_];
+  }
+};
+
+template <> struct Executor<Instruction::LD_IMM> {
+  const uint8_t x_;
+  const uint8_t kk_;
+
+  constexpr Executor(uint8_t x, uint8_t kk) : x_{x}, kk_{kk} {}
+
+  constexpr auto next_pc() const noexcept -> NextPC { return Increment{}; }
+
+  auto operator()(CHIP8 &ctx) const noexcept -> void { ctx.vx[x_] = kk_; }
+};
+
+template <BinaryOp<uint8_t> Op> struct ArithmeticExecutor {
+  const uint8_t x_;
+  const uint8_t y_;
+
+  constexpr ArithmeticExecutor(uint8_t x, uint8_t y) : x_{x}, y_{y} {}
+
+  constexpr auto next_pc() const noexcept -> NextPC { return Increment{}; }
+
+  auto operator()(CHIP8 &ctx) const noexcept -> void {
+    auto &x = ctx.vx[x_], &y = ctx.vx[y_];
+    x = Op{}(x, y);
+  }
+};
+
+template <>
+struct Executor<Instruction::OR> : ArithmeticExecutor<std::bit_or<uint8_t>> {
+  using ArithmeticExecutor<std::bit_or<uint8_t>>::ArithmeticExecutor;
+};
+
+template <>
+struct Executor<Instruction::AND> : ArithmeticExecutor<std::bit_and<uint8_t>> {
+  using ArithmeticExecutor<std::bit_and<uint8_t>>::ArithmeticExecutor;
+};
+
+template <>
+struct Executor<Instruction::XOR> : ArithmeticExecutor<std::bit_xor<uint8_t>> {
+  using ArithmeticExecutor<std::bit_xor<uint8_t>>::ArithmeticExecutor;
 };
