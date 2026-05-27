@@ -150,20 +150,14 @@ template <uint16_t PC> inline auto run(CHIP8 &ctx) -> void {
 // Makes a runtime call to a templated (compile-time) function
 // This is the bridge between compile-time chains of known instructions and
 // runtime jumps
-template <size_t... PCs>
-auto dispatch(CHIP8 &ctx, std::index_sequence<PCs...>) -> void {
-  (
-      [&] {
-        if (ctx.pc == PCs) {
-          run<PCs>(ctx);
-        }
-      }(),
-      ...);
-}
+constexpr auto DISPATCH_TABLE =
+    ([]<uint16_t... PCs>(std::integer_sequence<uint16_t, PCs...>) constexpr {
+      return std::array{&run<PCs>...};
+    })(std::make_integer_sequence<uint16_t, GAME_ROM.size()>{});
 
 inline auto execute_program(CHIP8 &ctx) -> void {
   ctx.pc = 0;
   while (ctx.pc < GAME_ROM.size()) {
-    dispatch(ctx, std::make_index_sequence<GAME_ROM.size()>{});
+    DISPATCH_TABLE[ctx.pc](ctx);
   }
 }
